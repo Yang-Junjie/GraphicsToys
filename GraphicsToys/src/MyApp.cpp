@@ -1,6 +1,7 @@
 ﻿#include "Application.hpp"
 #include "Renderer/Rasterization/RasterizationRenderer.hpp"
 #include "Renderer/Triangle.hpp"
+#include "Renderer/Camera.hpp"
 #include <imgui.h>
 
 class MyLayer : public Flux::Layer
@@ -20,10 +21,9 @@ public:
     virtual void OnUpdate(float dt) override
     {
         m_Renderer.Clear();
-
-        m_Triangle.UpdateModelMatrix(m_Width, m_Height);
-
-        m_Renderer.DrawTriangle(m_Triangle);
+        m_Triangle.UpdateModelMatrix();
+        glm::mat4 MVP = m_Camera.GetVPMatrix() * m_Triangle.modelMatrix;
+        m_Renderer.DrawTriangle(m_Triangle, MVP);
         m_Renderer.Render();
     }
 
@@ -33,10 +33,15 @@ public:
         ImGui::Image(m_Renderer.GetTextureRef(), ImVec2(550, 550));
         ImGui::End();
         ImGui::Begin("Settings");
+        ImGui::SeparatorText("Object Transform");
         ImGui::SliderFloat("Scale", &m_Triangle.scale, 0.1f, 2.f);
         ImGui::SliderAngle("Rotation", &m_Triangle.rotation);
         ImGui::SliderFloat("Offset X", &m_Triangle.offsetX, -float(m_Width) / 2.f, float(m_Width) / 2.f);
         ImGui::SliderFloat("Offset Y", &m_Triangle.offsetY, -float(m_Height) / 2.f, float(m_Height) / 2.f);
+        ImGui::SeparatorText("Camera");
+        ImGui::SliderFloat3("Camera Pos", &m_Camera.position.x, -10.f, 10.f);
+        ImGui::SliderFloat3("Camera Target", &m_Camera.target.x, -10.f, 10.f);
+        ImGui::SliderFloat("FOV", &m_Camera.fov, 10.f, 120.f);
         ImGui::End();
     }
 
@@ -44,6 +49,7 @@ private:
     uint32_t m_Width, m_Height;
     gty::RasterizationRenderer m_Renderer;
     gty::Triangle m_Triangle;
+    gty::Camera m_Camera;
 };
 
 class MyApp : public Flux::Application

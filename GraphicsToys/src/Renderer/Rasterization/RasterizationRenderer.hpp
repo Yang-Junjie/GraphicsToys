@@ -22,7 +22,7 @@ namespace gty
         void Clear();
 
         void SetPixel(glm::vec2 pos, glm::vec4 color);
-        void DrawTriangle(const Triangle &tri);
+        void DrawTriangle(const Triangle &tri, const glm::mat4 &MVP);
 
         void setClearColor(glm::vec4 color)
         {

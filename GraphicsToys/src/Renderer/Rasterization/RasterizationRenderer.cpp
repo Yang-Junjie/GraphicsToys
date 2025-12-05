@@ -39,29 +39,29 @@ namespace gty
         m_Data[idx + 3] = uint8_t(glm::clamp(color.a, 0.f, 1.f) * 255.f);
     }
 
-    void RasterizationRenderer::DrawTriangle(const Triangle &tri)
+    void RasterizationRenderer::DrawTriangle(const Triangle &tri, const glm::mat4 &MVP)
     {
-        glm::vec2 min = tri.GetAABBMin();
-        glm::vec2 max = tri.GetAABBMax();
+        glm::vec2 min = tri.GetAABBMin(MVP, m_Width, m_Height);
+        glm::vec2 max = tri.GetAABBMax(MVP, m_Width, m_Height);
 
-        int x0 = std::max(0, int(std::floor(min.x)));
-        int y0 = std::max(0, int(std::floor(min.y)));
-        int x1 = std::min(int(m_Width - 1), int(std::ceil(max.x)));
-        int y1 = std::min(int(m_Height - 1), int(std::ceil(max.y)));
+        int x0 = std::max(0, int(floor(min.x)));
+        int y0 = std::max(0, int(floor(min.y)));
+        int x1 = std::min(int(m_Width - 1), int(ceil(max.x)));
+        int y1 = std::min(int(m_Height - 1), int(ceil(max.y)));
 
         for (int y = y0; y <= y1; y++)
         {
             for (int x = x0; x <= x1; x++)
             {
                 glm::vec2 p(x + 0.5f, y + 0.5f);
-                glm::vec3 bary = tri.GetBarycentricCoordinates(p);
-
+                glm::vec3 bary = tri.GetBarycentricCoordinates(p, MVP, m_Width, m_Height);
                 if (bary.x >= 0 && bary.y >= 0 && bary.z >= 0)
                 {
                     glm::vec4 color = tri.v0.color * bary.x + tri.v1.color * bary.y + tri.v2.color * bary.z;
-                    SetPixel({float(x), float(y)}, color);
+                    SetPixel(glm::vec2(x, y), color);
                 }
             }
         }
     }
+
 }
