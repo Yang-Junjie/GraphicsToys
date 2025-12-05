@@ -7,9 +7,13 @@ namespace gty
     struct Vertex3
     {
         glm::vec3 pos;
+        glm::vec3 normal;
         glm::vec4 color;
-        Vertex3(const glm::vec3 &p = {0, 0, 0}, const glm::vec4 &c = {1, 1, 1, 1})
-            : pos(p), color(c) {}
+
+        Vertex3(const glm::vec3 &p = {0, 0, 0},
+                const glm::vec3 &n = {0, 0, 1},
+                const glm::vec4 &c = {1, 1, 1, 1})
+            : pos(p), normal(n), color(c) {}
     };
 
     struct Triangle
@@ -45,7 +49,7 @@ namespace gty
         glm::vec3 GetScreenPos3D(const Vertex3 &v, const glm::mat4 &MVP, int screenWidth, int screenHeight) const
         {
             glm::vec4 p = MVP * glm::vec4(v.pos, 1.f);
-            p /= p.w; 
+            p /= p.w;
             float x = (p.x * 0.5f + 0.5f) * screenWidth;
             float y = (p.y * 0.5f + 0.5f) * screenHeight;
             float z = p.z * 0.5f + 0.5f;
@@ -66,6 +70,16 @@ namespace gty
             glm::vec2 p1 = GetScreenPos(v1, MVP, screenWidth, screenHeight);
             glm::vec2 p2 = GetScreenPos(v2, MVP, screenWidth, screenHeight);
             return glm::max(glm::max(p0, p1), p2);
+        }
+
+        glm::vec3 InterpolateNormal(const glm::vec3 &bary) const
+        {
+            return glm::normalize(v0.normal * bary.x + v1.normal * bary.y + v2.normal * bary.z);
+        }
+
+        glm::vec4 InterpolateColor(const glm::vec3 &bary) const
+        {
+            return v0.color * bary.x + v1.color * bary.y + v2.color * bary.z;
         }
 
         glm::vec3 GetBarycentricCoordinates(const glm::vec2 &p, const glm::mat4 &MVP, uint32_t screenWidth, uint32_t screenHeight) const

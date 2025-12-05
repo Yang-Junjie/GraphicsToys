@@ -12,7 +12,8 @@ namespace gty
 
         float fov = 45.f;
         float nearZ = 0.1f;
-        float farZ = 100.f;
+        // 远平面稍微拉远一些，避免模型被裁剪掉
+        float farZ = 1000.f;
 
         uint32_t screenWidth = 256;
         uint32_t screenHeight = 256;

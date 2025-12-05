@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include "../Triangle.hpp"
 #include "../Mesh.hpp"
+#include "Shader.hpp"
 
 namespace gty
 {
@@ -25,7 +26,17 @@ namespace gty
 
         void SetPixel(glm::vec2 pos, glm::vec4 color);
         void DrawTriangle(const Triangle &tri, const glm::mat4 &MVP);
+        void DrawTriangle(const Triangle &tri,
+                          const glm::mat4 &MVP,
+                          const glm::vec3 &cameraPos,
+                          const DirectionalLight &light,
+                          const Material &material);
         void DrawMesh(const Mesh &mesh, const glm::mat4 &VP);
+        void DrawMesh(const Mesh &mesh,
+                      const glm::mat4 &VP,
+                      const glm::vec3 &cameraPos,
+                      const DirectionalLight &light,
+                      const Material &material);
 
         void setClearColor(glm::vec4 color)
         {
