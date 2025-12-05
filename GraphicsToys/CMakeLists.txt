@@ -1,5 +1,5 @@
 ﻿
-add_executable(app src/MyApp.cpp)
+add_executable(app src/MyApp.cpp src/Renderer/Rasterization/RasterizationRenderer.cpp)
 set_target_properties(app PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
 )
