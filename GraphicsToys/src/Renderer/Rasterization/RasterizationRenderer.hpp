@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <glm/glm.hpp>
 #include "../Triangle.hpp"
+#include "../Mesh.hpp"
 
 namespace gty
 {
@@ -24,6 +25,7 @@ namespace gty
 
         void SetPixel(glm::vec2 pos, glm::vec4 color);
         void DrawTriangle(const Triangle &tri, const glm::mat4 &MVP);
+        void DrawMesh(const Mesh &mesh, const glm::mat4 &VP);
 
         void setClearColor(glm::vec4 color)
         {

@@ -26,6 +26,7 @@ namespace gty
         {
             float aspect = float(screenWidth) / float(screenHeight);
             return glm::perspective(glm::radians(fov), aspect, nearZ, farZ);
+            //  return glm::ortho(0.f, float(screenWidth), 0.f, float(screenHeight), -10.f, 10.f);
         }
 
         glm::mat4 GetVPMatrix() const

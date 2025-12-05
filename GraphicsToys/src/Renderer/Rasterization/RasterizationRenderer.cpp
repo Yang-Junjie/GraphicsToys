@@ -59,7 +59,6 @@ namespace gty
             {
                 glm::vec2 p(x + 0.5f, y + 0.5f);
 
-               
                 float denom = (p1.y - p2.y) * (p0.x - p2.x) + (p2.x - p1.x) * (p0.y - p2.y);
                 float u = ((p1.y - p2.y) * (p.x - p2.x) + (p2.x - p1.x) * (p.y - p2.y)) / denom;
                 float v = ((p2.y - p0.y) * (p.x - p2.x) + (p0.x - p2.x) * (p.y - p2.y)) / denom;
@@ -77,6 +76,14 @@ namespace gty
                     }
                 }
             }
+        }
+    }
+    void RasterizationRenderer::DrawMesh(const Mesh &mesh, const glm::mat4 &VP)
+    {
+        for (const auto &tri : mesh.triangles)
+        {
+            glm::mat4 MVP = VP * tri.modelMatrix;
+            DrawTriangle(tri, MVP);
         }
     }
 
