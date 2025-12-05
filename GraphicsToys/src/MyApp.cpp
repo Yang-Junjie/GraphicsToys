@@ -1,44 +1,49 @@
 ﻿#include "Application.hpp"
-#include <Image.hpp>
-#include <vector>
 #include "Renderer/Rasterization/RasterizationRenderer.hpp"
 #include "Renderer/Triangle.hpp"
+#include <imgui.h>
 
 class MyLayer : public Flux::Layer
 {
 public:
-    MyLayer() : m_Renderer(512, 512)
+    MyLayer(uint32_t width = 256, uint32_t height = 256)
+        : m_Width(width), m_Height(height), m_Renderer(width, height)
     {
-        m_Renderer.setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
-    }
+        m_Renderer.setClearColor({0.1f, 0.1f, 0.1f, 1.f});
 
-    virtual void OnAttach() override {}
-    virtual void OnDetach() override {}
+        gty::Vertex3 v0({-0.5f, -0.5f, 0}, {1, 0, 0, 1});
+        gty::Vertex3 v1({0.5f, -0.5f, 0}, {0, 1, 0, 1});
+        gty::Vertex3 v2({0.0f, 0.5f, 0}, {0, 0, 1, 1});
+        m_Triangle = gty::Triangle(v0, v1, v2);
+    }
 
     virtual void OnUpdate(float dt) override
     {
         m_Renderer.Clear();
 
-        gty::Vertex3 v0(glm::vec3(128, 128, 0), glm::vec4(1,0,0,1)); // 红
-        gty::Vertex3 v1(glm::vec3(384, 128, 0), glm::vec4(0,1,0,1)); // 绿
-        gty::Vertex3 v2(glm::vec3(256, 384, 0), glm::vec4(0,0,1,1)); // 蓝
+        m_Triangle.UpdateModelMatrix(m_Width, m_Height);
 
-        gty::Triangle triangle(v0, v1, v2);
-        m_Renderer.DrawTriangle(triangle);
-
+        m_Renderer.DrawTriangle(m_Triangle);
         m_Renderer.Render();
-        m_Renderer.SwapBuffers();
     }
 
     virtual void OnRenderUI() override
     {
-        ImGui::Begin("Rasterization Test");
-        ImGui::Image(m_Renderer.GetTextureRef(), ImVec2(512, 512));
+        ImGui::Begin("Triangle");
+        ImGui::Image(m_Renderer.GetTextureRef(), ImVec2(550, 550));
+        ImGui::End();
+        ImGui::Begin("Settings");
+        ImGui::SliderFloat("Scale", &m_Triangle.scale, 0.1f, 2.f);
+        ImGui::SliderAngle("Rotation", &m_Triangle.rotation);
+        ImGui::SliderFloat("Offset X", &m_Triangle.offsetX, -float(m_Width) / 2.f, float(m_Width) / 2.f);
+        ImGui::SliderFloat("Offset Y", &m_Triangle.offsetY, -float(m_Height) / 2.f, float(m_Height) / 2.f);
         ImGui::End();
     }
 
 private:
+    uint32_t m_Width, m_Height;
     gty::RasterizationRenderer m_Renderer;
+    gty::Triangle m_Triangle;
 };
 
 class MyApp : public Flux::Application
@@ -48,18 +53,13 @@ public:
     {
         PushLayer(std::make_unique<MyLayer>());
         SetMenubarCallback([this]()
-        {
-            if (ImGui::BeginMenu("File"))
+                           {
+            if(ImGui::BeginMenu("File"))
             {
-                if (ImGui::MenuItem("Exit"))
-                {
-                    Close();
-                }
+                if(ImGui::MenuItem("Exit")) Close();
                 ImGui::EndMenu();
-            }
-        });
+            } });
     }
-
     virtual ~MyApp() override = default;
 };
 
