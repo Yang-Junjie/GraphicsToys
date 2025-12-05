@@ -16,14 +16,22 @@ public:
         gty::Vertex3 v1({0.5f, -0.5f, 0}, {0, 1, 0, 1});
         gty::Vertex3 v2({0.0f, 0.5f, 0}, {0, 0, 1, 1});
         m_Triangle = gty::Triangle(v0, v1, v2);
+
+        gty::Vertex3 v3({-0.3f, -0.3f, 0.5f}, {1, 1, 0, 1});
+        gty::Vertex3 v4({0.7f, -0.3f, 0.5f}, {0, 1, 1, 1});
+        gty::Vertex3 v5({0.2f, 0.7f, 0.5f}, {1, 0, 1, 1});
+        m_Triangle2 = gty::Triangle(v3, v4, v5);
     }
 
     virtual void OnUpdate(float dt) override
     {
         m_Renderer.Clear();
         m_Triangle.UpdateModelMatrix();
-        glm::mat4 MVP = m_Camera.GetVPMatrix() * m_Triangle.modelMatrix;
-        m_Renderer.DrawTriangle(m_Triangle, MVP);
+        glm::mat4 MVP1 = m_Camera.GetVPMatrix() * m_Triangle.modelMatrix;
+        glm::mat4 MVP2 = m_Camera.GetVPMatrix() * m_Triangle2.modelMatrix;
+        m_Renderer.DrawTriangle(m_Triangle, MVP1);
+        m_Renderer.DrawTriangle(m_Triangle2, MVP2);
+
         m_Renderer.Render();
     }
 
@@ -49,6 +57,7 @@ private:
     uint32_t m_Width, m_Height;
     gty::RasterizationRenderer m_Renderer;
     gty::Triangle m_Triangle;
+    gty::Triangle m_Triangle2;
     gty::Camera m_Camera;
 };
 

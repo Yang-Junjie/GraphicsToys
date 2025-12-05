@@ -42,6 +42,16 @@ namespace gty
             return glm::vec2(x, y);
         }
 
+        glm::vec3 GetScreenPos3D(const Vertex3 &v, const glm::mat4 &MVP, int screenWidth, int screenHeight) const
+        {
+            glm::vec4 p = MVP * glm::vec4(v.pos, 1.f);
+            p /= p.w; 
+            float x = (p.x * 0.5f + 0.5f) * screenWidth;
+            float y = (p.y * 0.5f + 0.5f) * screenHeight;
+            float z = p.z * 0.5f + 0.5f;
+            return glm::vec3(x, y, z);
+        }
+
         glm::vec2 GetAABBMin(const glm::mat4 &MVP, uint32_t screenWidth, uint32_t screenHeight) const
         {
             glm::vec2 p0 = GetScreenPos(v0, MVP, screenWidth, screenHeight);

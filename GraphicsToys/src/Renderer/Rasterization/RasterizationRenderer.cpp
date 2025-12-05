@@ -19,6 +19,7 @@ namespace gty
             m_Data[i + 2] = static_cast<uint8_t>(m_ClearColor.b);
             m_Data[i + 3] = static_cast<uint8_t>(m_ClearColor.a);
         }
+        std::fill(m_DepthBuffer.begin(), m_DepthBuffer.end(), std::numeric_limits<float>::infinity());
     }
 
     void RasterizationRenderer::SetPixel(glm::vec2 pos, glm::vec4 color)
@@ -29,7 +30,6 @@ namespace gty
         if (x < 0 || x >= int(m_Width) || y < 0 || y >= int(m_Height))
             return;
 
-        // ·­×ªYÖá
         int flippedY = m_Height - 1 - y;
         int idx = (flippedY * m_Width + x) * 4;
 
@@ -41,24 +41,40 @@ namespace gty
 
     void RasterizationRenderer::DrawTriangle(const Triangle &tri, const glm::mat4 &MVP)
     {
-        glm::vec2 min = tri.GetAABBMin(MVP, m_Width, m_Height);
-        glm::vec2 max = tri.GetAABBMax(MVP, m_Width, m_Height);
+        glm::vec3 p0 = tri.GetScreenPos3D(tri.v0, MVP, m_Width, m_Height);
+        glm::vec3 p1 = tri.GetScreenPos3D(tri.v1, MVP, m_Width, m_Height);
+        glm::vec3 p2 = tri.GetScreenPos3D(tri.v2, MVP, m_Width, m_Height);
 
-        int x0 = std::max(0, int(floor(min.x)));
-        int y0 = std::max(0, int(floor(min.y)));
-        int x1 = std::min(int(m_Width - 1), int(ceil(max.x)));
-        int y1 = std::min(int(m_Height - 1), int(ceil(max.y)));
+        glm::vec2 min = glm::min(glm::min(glm::vec2(p0), glm::vec2(p1)), glm::vec2(p2));
+        glm::vec2 max = glm::max(glm::max(glm::vec2(p0), glm::vec2(p1)), glm::vec2(p2));
 
-        for (int y = y0; y <= y1; y++)
+        int x0 = std::max(0, int(std::floor(min.x)));
+        int y0 = std::max(0, int(std::floor(min.y)));
+        int x1 = std::min(int(m_Width - 1), int(std::ceil(max.x)));
+        int y1 = std::min(int(m_Height - 1), int(std::ceil(max.y)));
+
+        for (int y = y0; y <= y1; ++y)
         {
-            for (int x = x0; x <= x1; x++)
+            for (int x = x0; x <= x1; ++x)
             {
                 glm::vec2 p(x + 0.5f, y + 0.5f);
-                glm::vec3 bary = tri.GetBarycentricCoordinates(p, MVP, m_Width, m_Height);
-                if (bary.x >= 0 && bary.y >= 0 && bary.z >= 0)
+
+               
+                float denom = (p1.y - p2.y) * (p0.x - p2.x) + (p2.x - p1.x) * (p0.y - p2.y);
+                float u = ((p1.y - p2.y) * (p.x - p2.x) + (p2.x - p1.x) * (p.y - p2.y)) / denom;
+                float v = ((p2.y - p0.y) * (p.x - p2.x) + (p0.x - p2.x) * (p.y - p2.y)) / denom;
+                float w = 1.f - u - v;
+
+                if (u >= 0 && v >= 0 && w >= 0)
                 {
-                    glm::vec4 color = tri.v0.color * bary.x + tri.v1.color * bary.y + tri.v2.color * bary.z;
-                    SetPixel(glm::vec2(x, y), color);
+                    float z = u * p0.z + v * p1.z + w * p2.z;
+                    int idx = y * m_Width + x;
+                    if (z < m_DepthBuffer[idx])
+                    {
+                        m_DepthBuffer[idx] = z;
+                        glm::vec4 color = tri.v0.color * u + tri.v1.color * v + tri.v2.color * w;
+                        SetPixel({float(x), float(y)}, color);
+                    }
                 }
             }
         }

@@ -15,6 +15,7 @@ namespace gty
               m_Image(width, height)
         {
             m_Data.resize(m_Width * m_Height * 4, 0);
+            m_DepthBuffer.resize(m_Width * m_Height, std::numeric_limits<float>::infinity());
             m_ClearColor = {0, 0, 0, 255};
         }
 
@@ -38,7 +39,9 @@ namespace gty
         uint32_t m_Width;
         uint32_t m_Height;
         std::vector<uint8_t> m_Data;
+        std::vector<float> m_DepthBuffer;
         Flux::Image m_Image;
+
         glm::vec4 m_ClearColor;
     };
 }
