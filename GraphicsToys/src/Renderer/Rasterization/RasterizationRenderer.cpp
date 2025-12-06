@@ -44,16 +44,6 @@ namespace gty
         glm::vec3 p0 = tri.GetScreenPos3D(tri.v0, MVP, m_Width, m_Height);
         glm::vec3 p1 = tri.GetScreenPos3D(tri.v1, MVP, m_Width, m_Height);
         glm::vec3 p2 = tri.GetScreenPos3D(tri.v2, MVP, m_Width, m_Height);
-        {
-            glm::vec2 s0(p0.x, p0.y);
-            glm::vec2 s1(p1.x, p1.y);
-            glm::vec2 s2(p2.x, p2.y);
-
-            float area = (s1.x - s0.x) * (s2.y - s0.y) -
-                         (s2.x - s0.x) * (s1.y - s0.y);
-            if (area >= 0.0f)
-                return;
-        }
 
         glm::vec2 min = glm::min(glm::min(glm::vec2(p0), glm::vec2(p1)), glm::vec2(p2));
         glm::vec2 max = glm::max(glm::max(glm::vec2(p0), glm::vec2(p1)), glm::vec2(p2));
@@ -98,18 +88,6 @@ namespace gty
         glm::vec3 p0 = tri.GetScreenPos3D(tri.v0, MVP, m_Width, m_Height);
         glm::vec3 p1 = tri.GetScreenPos3D(tri.v1, MVP, m_Width, m_Height);
         glm::vec3 p2 = tri.GetScreenPos3D(tri.v2, MVP, m_Width, m_Height);
-
-        // Back-face culling in screen space (same convention as above).
-        {
-            glm::vec2 s0(p0.x, p0.y);
-            glm::vec2 s1(p1.x, p1.y);
-            glm::vec2 s2(p2.x, p2.y);
-
-            float area = (s1.x - s0.x) * (s2.y - s0.y) -
-                         (s2.x - s0.x) * (s1.y - s0.y);
-            if (area >= 0.0f)
-                return;
-        }
 
         glm::vec2 min = glm::min(glm::min(glm::vec2(p0), glm::vec2(p1)), glm::vec2(p2));
         glm::vec2 max = glm::max(glm::max(glm::vec2(p0), glm::vec2(p1)), glm::vec2(p2));
@@ -181,7 +159,6 @@ namespace gty
                        
                         baseColor *= glm::vec4(material.diffuse, 1.0f);
 
-                      
                         Material triMat = material;
                         if (tri.hasMaterialProps)
                         {
@@ -217,6 +194,7 @@ namespace gty
                                          const DirectionalLight &light,
                                          const Material &material)
     {
+
         Material mat = material;
         if (mesh.hasDiffuseTexture && mesh.diffuseTexture.IsValid())
         {
