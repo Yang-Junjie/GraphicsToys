@@ -44,6 +44,16 @@ namespace gty
         glm::vec3 p0 = tri.GetScreenPos3D(tri.v0, MVP, m_Width, m_Height);
         glm::vec3 p1 = tri.GetScreenPos3D(tri.v1, MVP, m_Width, m_Height);
         glm::vec3 p2 = tri.GetScreenPos3D(tri.v2, MVP, m_Width, m_Height);
+        {
+            glm::vec2 s0(p0.x, p0.y);
+            glm::vec2 s1(p1.x, p1.y);
+            glm::vec2 s2(p2.x, p2.y);
+
+            float area = (s1.x - s0.x) * (s2.y - s0.y) -
+                         (s2.x - s0.x) * (s1.y - s0.y);
+            if (area >= 0.0f)
+                return;
+        }
 
         glm::vec2 min = glm::min(glm::min(glm::vec2(p0), glm::vec2(p1)), glm::vec2(p2));
         glm::vec2 max = glm::max(glm::max(glm::vec2(p0), glm::vec2(p1)), glm::vec2(p2));
@@ -89,6 +99,18 @@ namespace gty
         glm::vec3 p1 = tri.GetScreenPos3D(tri.v1, MVP, m_Width, m_Height);
         glm::vec3 p2 = tri.GetScreenPos3D(tri.v2, MVP, m_Width, m_Height);
 
+        // Back-face culling in screen space (same convention as above).
+        {
+            glm::vec2 s0(p0.x, p0.y);
+            glm::vec2 s1(p1.x, p1.y);
+            glm::vec2 s2(p2.x, p2.y);
+
+            float area = (s1.x - s0.x) * (s2.y - s0.y) -
+                         (s2.x - s0.x) * (s1.y - s0.y);
+            if (area >= 0.0f)
+                return;
+        }
+
         glm::vec2 min = glm::min(glm::min(glm::vec2(p0), glm::vec2(p1)), glm::vec2(p2));
         glm::vec2 max = glm::max(glm::max(glm::vec2(p0), glm::vec2(p1)), glm::vec2(p2));
 
@@ -98,6 +120,7 @@ namespace gty
         int y1 = std::min(int(m_Height - 1), int(std::ceil(max.y)));
 
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(tri.modelMatrix)));
+
 
         glm::vec4 clip0 = MVP * glm::vec4(tri.v0.pos, 1.0f);
         glm::vec4 clip1 = MVP * glm::vec4(tri.v1.pos, 1.0f);
@@ -135,15 +158,18 @@ namespace gty
                     {
                         m_DepthBuffer[idx] = z;
 
+
                         glm::vec3 normalObj = tri.InterpolateNormal(bary);
                         normalObj = glm::normalize(normalObj);
                         glm::vec3 normal = glm::normalize(normalMatrix * normalObj);
+
 
                         float invW = bary.x * invW0 + bary.y * invW1 + bary.z * invW2;
 
                         glm::vec2 uv = (uvOverW0 * bary.x + uvOverW1 * bary.y + uvOverW2 * bary.z) / invW;
                         glm::vec3 fragPos = (posOverW0 * bary.x + posOverW1 * bary.y + posOverW2 * bary.z) / invW;
 
+                      
                         glm::vec3 worldFragPos = glm::vec3(tri.modelMatrix * glm::vec4(fragPos, 1.0f));
 
                         glm::vec4 texColor = material.diffuseMap && material.useTexture
@@ -152,13 +178,15 @@ namespace gty
                         glm::vec4 vertexColor = tri.InterpolateColor(bary);
                         glm::vec4 baseColor = texColor * vertexColor;
 
+                       
                         baseColor *= glm::vec4(material.diffuse, 1.0f);
 
+                      
                         Material triMat = material;
                         if (tri.hasMaterialProps)
                         {
-                            triMat.ambient = tri.matAmbient * material.ambient;
-                            triMat.specular = tri.matSpecular * material.specular;
+                            triMat.ambient   = tri.matAmbient * material.ambient;
+                            triMat.specular  = tri.matSpecular * material.specular;
                             triMat.shininess = tri.matShininess * material.shininess;
                         }
 
@@ -198,20 +226,6 @@ namespace gty
 
         for (const auto &tri : mesh.triangles)
         {
-  
-            glm::vec3 p0 = glm::vec3(tri.modelMatrix * glm::vec4(tri.v0.pos, 1.0f));
-            glm::vec3 p1 = glm::vec3(tri.modelMatrix * glm::vec4(tri.v1.pos, 1.0f));
-            glm::vec3 p2 = glm::vec3(tri.modelMatrix * glm::vec4(tri.v2.pos, 1.0f));
-
-            glm::vec3 e1 = p1 - p0;
-            glm::vec3 e2 = p2 - p0;
-            glm::vec3 normal = glm::normalize(glm::cross(e1, e2));
-
-            glm::vec3 viewDir = glm::normalize(cameraPos - p0);
-
-            if (glm::dot(normal, viewDir) <= 0.0f)
-                continue;
-
             glm::mat4 MVP = VP * tri.modelMatrix;
             DrawTriangle(tri, MVP, cameraPos, light, mat);
         }

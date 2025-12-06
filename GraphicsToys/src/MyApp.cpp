@@ -16,7 +16,7 @@ public:
         m_Renderer.setClearColor({0.0f, 0.0f, 0.0f, 1.f});
 
         gty::Mesh model;
-        if (!LoadObjToMesh("F:\\Beisent\\GraphicsToy\\GraphicsToys\\obj\\Pistol_02.obj", model))
+        if (!LoadObjToMesh("F:\\Beisent\\GraphicsToy\\GraphicsToys\\obj\\teapot.obj", model))
         {
             std::cerr << "Failed to load obj\n";
         }
