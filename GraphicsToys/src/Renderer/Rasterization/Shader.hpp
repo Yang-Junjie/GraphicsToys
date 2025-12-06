@@ -1,4 +1,5 @@
 #pragma once
+#include "../Texture2D.hpp"
 #include <glm/glm.hpp>
 
 struct DirectionalLight
@@ -10,14 +11,15 @@ struct DirectionalLight
 
 struct Material
 {
-
-    glm::vec3 ambient = {0.1f, 0.1f, 0.1f};
-
-    glm::vec3 diffuse = {1.f, 1.f, 1.f};
-
-    glm::vec3 specular = {1.f, 1.f, 1.f};
+    glm::vec3 ambient {0.1f};
+    glm::vec3 diffuse {1.f, 0.f, 0.f};
+    glm::vec3 specular {1.f};
     float shininess = 32.f;
+
+    bool useTexture = false;
+    const Texture2D* diffuseMap = nullptr;
 };
+
 
 inline glm::vec3 PhongLighting(const glm::vec3 &pos,
                                const glm::vec3 &normal,

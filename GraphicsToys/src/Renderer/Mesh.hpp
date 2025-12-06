@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Triangle.hpp"
+#include "Texture2D.hpp"
 
 namespace gty
 {
@@ -10,10 +11,12 @@ namespace gty
         std::vector<Triangle> triangles;
         glm::mat4 modelMatrix = glm::mat4(1.f);
 
-      
         float scale = 1.f;
-        glm::vec3 rotation = {0.f, 0.f, 0.f}; 
+        glm::vec3 rotation = {0.f, 0.f, 0.f};
         glm::vec3 translation = {0.f, 0.f, 0.f};
+
+        Texture2D diffuseTexture;
+        bool hasDiffuseTexture = false;
 
         void UpdateModelMatrix()
         {

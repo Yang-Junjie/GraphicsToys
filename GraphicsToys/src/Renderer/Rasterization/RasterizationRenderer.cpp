@@ -84,6 +84,7 @@ namespace gty
                                              const DirectionalLight &light,
                                              const Material &material)
     {
+
         glm::vec3 p0 = tri.GetScreenPos3D(tri.v0, MVP, m_Width, m_Height);
         glm::vec3 p1 = tri.GetScreenPos3D(tri.v1, MVP, m_Width, m_Height);
         glm::vec3 p2 = tri.GetScreenPos3D(tri.v2, MVP, m_Width, m_Height);
@@ -96,8 +97,28 @@ namespace gty
         int x1 = std::min(int(m_Width - 1), int(std::ceil(max.x)));
         int y1 = std::min(int(m_Height - 1), int(std::ceil(max.y)));
 
-        // �? normal matrix 把模型空间的顶点法线变换到世界空�?
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(tri.modelMatrix)));
+
+
+        glm::vec4 clip0 = MVP * glm::vec4(tri.v0.pos, 1.0f);
+        glm::vec4 clip1 = MVP * glm::vec4(tri.v1.pos, 1.0f);
+        glm::vec4 clip2 = MVP * glm::vec4(tri.v2.pos, 1.0f);
+
+        float w0 = clip0.w != 0.0f ? clip0.w : 1.0f;
+        float w1 = clip1.w != 0.0f ? clip1.w : 1.0f;
+        float w2 = clip2.w != 0.0f ? clip2.w : 1.0f;
+
+        float invW0 = 1.0f / w0;
+        float invW1 = 1.0f / w1;
+        float invW2 = 1.0f / w2;
+
+        glm::vec2 uvOverW0 = tri.v0.uv * invW0;
+        glm::vec2 uvOverW1 = tri.v1.uv * invW1;
+        glm::vec2 uvOverW2 = tri.v2.uv * invW2;
+
+        glm::vec3 posOverW0 = tri.v0.pos * invW0;
+        glm::vec3 posOverW1 = tri.v1.pos * invW1;
+        glm::vec3 posOverW2 = tri.v2.pos * invW2;
 
         for (int y = y0; y <= y1; ++y)
         {
@@ -110,31 +131,48 @@ namespace gty
                 {
                     float z = bary.x * p0.z + bary.y * p1.z + bary.z * p2.z;
                     int idx = y * m_Width + x;
+
                     if (z < m_DepthBuffer[idx])
                     {
                         m_DepthBuffer[idx] = z;
 
-                        
+
                         glm::vec3 normalObj = tri.InterpolateNormal(bary);
-                        if (glm::length(normalObj) < 1e-6f)
-                        {
-                            glm::vec3 v0 = tri.v0.pos;
-                            glm::vec3 v1 = tri.v1.pos;
-                            glm::vec3 v2 = tri.v2.pos;
-                            normalObj = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-                        }
+                        normalObj = glm::normalize(normalObj);
                         glm::vec3 normal = glm::normalize(normalMatrix * normalObj);
 
-                        glm::vec3 fragPos = bary.x * tri.v0.pos + bary.y * tri.v1.pos + bary.z * tri.v2.pos;
-                        fragPos = glm::vec3(tri.modelMatrix * glm::vec4(fragPos, 1.f));
 
-                        glm::vec4 baseColor = tri.InterpolateColor(bary);
+                        float invW = bary.x * invW0 + bary.y * invW1 + bary.z * invW2;
 
-                        glm::vec3 viewDir = glm::normalize(cameraPos - fragPos);
-                        glm::vec3 lighting = PhongLighting(fragPos, normal, viewDir, light, material);
+                        glm::vec2 uv = (uvOverW0 * bary.x + uvOverW1 * bary.y + uvOverW2 * bary.z) / invW;
+                        glm::vec3 fragPos = (posOverW0 * bary.x + posOverW1 * bary.y + posOverW2 * bary.z) / invW;
+
+                      
+                        glm::vec3 worldFragPos = glm::vec3(tri.modelMatrix * glm::vec4(fragPos, 1.0f));
+
+                        glm::vec4 texColor = material.diffuseMap && material.useTexture
+                                                 ? material.diffuseMap->Sample(uv, true)
+                                                 : glm::vec4(1, 1, 1, 1);
+                        glm::vec4 vertexColor = tri.InterpolateColor(bary);
+                        glm::vec4 baseColor = texColor * vertexColor;
+
+                       
+                        baseColor *= glm::vec4(material.diffuse, 1.0f);
+
+                      
+                        Material triMat = material;
+                        if (tri.hasMaterialProps)
+                        {
+                            triMat.ambient   = tri.matAmbient * material.ambient;
+                            triMat.specular  = tri.matSpecular * material.specular;
+                            triMat.shininess = tri.matShininess * material.shininess;
+                        }
+
+                        glm::vec3 viewDir = glm::normalize(cameraPos - worldFragPos);
+                        glm::vec3 lighting = PhongLighting(worldFragPos, normal, viewDir, light, triMat);
 
                         glm::vec3 finalColor = lighting * glm::vec3(baseColor);
-                        finalColor = glm::clamp(finalColor, glm::vec3(0.0f), glm::vec3(1.0f));
+                        finalColor = glm::clamp(finalColor, glm::vec3(0), glm::vec3(1));
 
                         SetPixel({float(x), float(y)}, glm::vec4(finalColor, baseColor.a));
                     }
@@ -157,10 +195,17 @@ namespace gty
                                          const DirectionalLight &light,
                                          const Material &material)
     {
+        Material mat = material;
+        if (mesh.hasDiffuseTexture && mesh.diffuseTexture.IsValid())
+        {
+            mat.diffuseMap = &mesh.diffuseTexture;
+            mat.useTexture = true;
+        }
+
         for (const auto &tri : mesh.triangles)
         {
             glm::mat4 MVP = VP * tri.modelMatrix;
-            DrawTriangle(tri, MVP, cameraPos, light, material);
+            DrawTriangle(tri, MVP, cameraPos, light, mat);
         }
     }
 }

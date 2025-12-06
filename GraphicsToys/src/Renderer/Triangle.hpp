@@ -9,17 +9,26 @@ namespace gty
         glm::vec3 pos;
         glm::vec3 normal;
         glm::vec4 color;
+        glm::vec2 uv = {0, 0};
 
         Vertex3(const glm::vec3 &p = {0, 0, 0},
                 const glm::vec3 &n = {0, 0, 1},
                 const glm::vec4 &c = {1, 1, 1, 1})
             : pos(p), normal(n), color(c) {}
+        Vertex3(glm::vec3 p, glm::vec3 n, glm::vec2 uv_, glm::vec4 c)
+            : pos(p), normal(n), uv(uv_), color(c) {}
     };
 
     struct Triangle
     {
         Vertex3 v0, v1, v2;
         glm::mat4 modelMatrix = glm::mat4(1.f);
+
+        
+        glm::vec3 matAmbient {1.f, 1.f, 1.f};
+        glm::vec3 matSpecular {1.f, 1.f, 1.f};
+        float matShininess = 32.f;
+        bool hasMaterialProps = false;
 
         float scale = 1.f;
         float rotation = 0.f;
@@ -80,6 +89,10 @@ namespace gty
         glm::vec4 InterpolateColor(const glm::vec3 &bary) const
         {
             return v0.color * bary.x + v1.color * bary.y + v2.color * bary.z;
+        }
+        glm::vec2 InterpolateUV(const glm::vec3 &bary) const
+        {
+            return bary.x * v0.uv + bary.y * v1.uv + bary.z * v2.uv;
         }
 
         glm::vec3 GetBarycentricCoordinates(const glm::vec2 &p, const glm::mat4 &MVP, uint32_t screenWidth, uint32_t screenHeight) const
