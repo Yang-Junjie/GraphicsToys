@@ -1,5 +1,5 @@
 #pragma once
-#include "../Texture2D.hpp"
+#include "Texture2D.hpp"
 #include <glm/glm.hpp>
 
 struct DirectionalLight

@@ -3,8 +3,8 @@
 #include <vector>
 #include <imgui.h>
 #include <glm/glm.hpp>
-#include "../Triangle.hpp"
-#include "../Mesh.hpp"
+#include "Triangle.hpp"
+#include "Mesh.hpp"
 #include "Shader.hpp"
 
 namespace gty

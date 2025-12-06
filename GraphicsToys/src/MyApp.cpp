@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "Application.hpp"
 #include "Renderer/Rasterization/RasterizationRenderer.hpp"
-#include "Renderer/Mesh.hpp"
-#include "Renderer/Camera.hpp"
-#include "Renderer/OBJLoader.hpp"
+#include "Renderer/Rasterization/Mesh.hpp"
+#include "Renderer/Rasterization/Camera.hpp"
+#include "Renderer/Rasterization/OBJLoader.hpp"
 #include <imgui.h>
 #include <iostream>
 
